@@ -114,51 +114,51 @@ public class WhatsappRepository {
         for(Group group : groupUserMap.keySet()){
             if(groupUserMap.get(group).contains(user)){
                 userGroup = group;
-                if(adminMap.get(userGroup).equals(user)){
+                if(Objects.equals(adminMap.get(userGroup).getName(), user.getName())){
                     throw new Exception("Cannot remove admin");
                 }
                 userFound = true;
                 break;
             }
         }
-
+        //This is a bonus problem and does not contains any marks
+        //A user belongs to exactly one group
+        //If user is not found in any group, throw "User not found" exception
+        //If user is found in a group and it is the admin, throw "Cannot remove admin" exception
+        //If user is not the admin, remove the user from the group, remove all its messages from all the databases, and update relevant attributes accordingly.
+        //If user is removed successfully, return (the updated number of users in the group + the updated number of messages in group + the updated number of overall messages)
         if(userFound==false){
             throw new Exception("User not found");
         }
 
         List<User> userList = groupUserMap.get(userGroup);
-        List<User> updatedUserList = new ArrayList<>();
+        //List<User> updatedUserList = new ArrayList<>();
 
         for(User user1 : userList){
             if(user1.equals(user)){
-                continue;
+                userList.remove(user);
+                break;
             }
-            updatedUserList.add(user1);
         }
-        groupUserMap.put(userGroup, updatedUserList);
+        groupUserMap.put(userGroup, userList);
 
         List<Message> messageList = groupMessageMap.get(userGroup);
-        List<Message> updatedMessageList = new ArrayList<>();
-
         for(Message message : messageList){
             if(senderMap.get(message).equals(user)){
-                continue;
+                messageList.remove(message);
+                break;
             }
-            updatedMessageList.add(message);
         }
-        groupMessageMap.put(userGroup, updatedMessageList);
+        groupMessageMap.put(userGroup, messageList);
 
-        HashMap<Message, User> updatedSenderMap = new HashMap<>();
         for(Message message : senderMap.keySet()){
             if(senderMap.get(message).equals(user)){
-                continue;
+                senderMap.remove(user);
+                break;
             }
-            updatedSenderMap.put(message, senderMap.get(message));
         }
 
-        senderMap = updatedSenderMap;
-
-        return updatedUserList.size() + updatedMessageList.size() + updatedSenderMap.size();
+        return groupUserMap.get(userGroup).size() + groupMessageMap.get(userGroup).size() + senderMap.size();
     }
     public String findMessage(Date start, Date end, int K) throws Exception{
         //This is a bonus problem and does not contains any marks
